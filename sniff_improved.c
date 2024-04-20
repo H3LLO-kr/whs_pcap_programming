@@ -75,8 +75,10 @@ int main()
   char filter_exp[] = "icmp";
   bpf_u_int32 net;
 
+  printf("1\n");
   // Step 1: Open live pcap session on NIC with name enp0s3
-  handle = pcap_open_live("enp0s3", BUFSIZ, 1, 1000, errbuf);
+  handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, errbuf);
+  printf("2\n");
 
   // Step 2: Compile filter_exp into BPF psuedo-code
   pcap_compile(handle, &fp, filter_exp, 0, net);
@@ -84,6 +86,8 @@ int main()
       pcap_perror(handle, "Error:");
       exit(EXIT_FAILURE);
   }
+
+  printf("afljksadfsk\n");
 
   // Step 3: Capture packets
   pcap_loop(handle, -1, got_packet, NULL);
