@@ -9,7 +9,7 @@
 
 char *ether_ntoa(struct ethheader *addr, int _op)
 {
-  static char buf[18];
+  static char buf[100];
 
   if (_op == ETHER_DHOST)
     sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -41,8 +41,10 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
     struct ipheader * ip = (struct ipheader *)
                            (packet + sizeof(struct ethheader));
 
-	  printf("Ethernet Src Mac	: %s\n", ether_ntoa(eth, ETHER_SHOST));
-    printf("Ethernet Dst Mac	: %s\n", ether_ntoa(eth, ETHER_DHOST));
+    printf("----------------------------------------------\n");
+	
+	  printf("Ethernet Src Mac  : %s\n", ether_ntoa(eth, ETHER_SHOST));
+    printf("Ethernet Dst Mac  : %s\n", ether_ntoa(eth, ETHER_DHOST));
 
     printf("IP Src IP         : %s\n", inet_ntoa(ip->iph_sourceip));   
     printf("IP Dst IP         : %s\n", inet_ntoa(ip->iph_destip));    
@@ -50,18 +52,18 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
     /* determine protocol */
     switch(ip->iph_protocol) {                                 
         case IPPROTO_TCP:
-            printf("   Protocol: TCP\n");
-            printf("   Src port: %d\n", ntohs(((struct tcpheader*)(packet + sizeof(struct ethheader) + sizeof(struct ipheader)))->tcp_sport));
-            printf("   Dst port: %d\n", ntohs(((struct tcpheader*)(packet + sizeof(struct ethheader) + sizeof(struct ipheader)))->tcp_dport));
+            printf("Protocol          : TCP\n");
+            printf("Src port          : %d\n", ntohs(((struct tcpheader*)(packet + sizeof(struct ethheader) + sizeof(struct ipheader)))->tcp_sport));
+            printf("Dst port          : %d\n", ntohs(((struct tcpheader*)(packet + sizeof(struct ethheader) + sizeof(struct ipheader)))->tcp_dport));
             return;
         case IPPROTO_UDP:
-            printf("   Protocol: UDP\n");
+            printf("Protocol          : UDP\n");
             return;
         case IPPROTO_ICMP:
-            printf("   Protocol: ICMP\n");
+            printf("Protocol          : ICMP\n");
             return;
         default:
-            printf("   Protocol: others\n");
+            printf("Protocol          : others\n");
             return;
     }
   }
@@ -72,22 +74,17 @@ int main()
   pcap_t *handle;
   char errbuf[PCAP_ERRBUF_SIZE];
   struct bpf_program fp;
-  char filter_exp[] = "icmp";
   bpf_u_int32 net;
 
-  printf("1\n");
   // Step 1: Open live pcap session on NIC with name enp0s3
-  handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, errbuf);
-  printf("2\n");
+  handle = pcap_open_live("en0", BUFSIZ, 1, 1000, errbuf);
 
   // Step 2: Compile filter_exp into BPF psuedo-code
-  pcap_compile(handle, &fp, filter_exp, 0, net);
+  pcap_compile(handle, &fp, NULL, 0, net);
   if (pcap_setfilter(handle, &fp) !=0) {
       pcap_perror(handle, "Error:");
       exit(EXIT_FAILURE);
   }
-
-  printf("afljksadfsk\n");
 
   // Step 3: Capture packets
   pcap_loop(handle, -1, got_packet, NULL);
